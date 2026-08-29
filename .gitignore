@@ -6,3 +6,4 @@ package-lock.json
 src/core/debug.ts
 src/proto
 src/script/bilibili/danmaku.cjs
+.DS_Store
