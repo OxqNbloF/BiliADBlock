@@ -6,6 +6,8 @@
     "scripts": {
         "build": "tsx build.ts",
         "test:home": "node --test tests/bilibili-home.test.mjs",
+        "test:playback": "node --test tests/bilibili-playback.test.mjs",
+        "test:video-ads": "node --test tests/bilibili-video-ads.test.mjs",
         "generate": "buf generate && tsx add-pure-annotations.ts",
         "jq": "jq -f ./jq/dev/index.jq --indent 4 < ./jq/dev/input.json > ./jq/dev/output.json"
     },
