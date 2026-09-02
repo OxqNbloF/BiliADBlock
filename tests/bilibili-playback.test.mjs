@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { test } from 'node:test';
 
-const safeConfig = readFileSync(new URL('../release/loon/plugin/bilibili-playback-safe.lpx', import.meta.url), 'utf8');
-const safeLines = safeConfig.split('\n');
+const loonConfig = readFileSync(new URL('../release/loon/plugin/bilibili.lpx', import.meta.url), 'utf8');
+const loonLines = loonConfig.split('\n');
 
 test('Loon playback isolation: neither rewrites nor scripts match the playback chain', () => {
-    const patterns = safeLines.flatMap(line => {
+    const patterns = loonLines.flatMap(line => {
         if (line.startsWith('^https:')) return [new RegExp(line.split(' ')[0])];
         if (line.startsWith('http-response ')) return [new RegExp(line.split(' ')[1])];
         assert.ok(!line.startsWith('http-request '), 'No script may reissue native requests');
@@ -15,9 +15,7 @@ test('Loon playback isolation: neither rewrites nor scripts match the playback c
     assert.ok(patterns.length > 0);
     for (const host of ['grpc.biliapi.net', 'app.bilibili.com', 'api.bilibili.com']) {
         for (const endpoint of [
-            'bilibili.app.viewunite.v1.View/View',
             'bilibili.app.viewunite.v1.View/ViewProgress',
-            'bilibili.app.view.v1.View/View',
             'bilibili.app.view.v1.View/ViewProgress',
             'bilibili.app.playerunite.v1.Player/PlayViewUnite',
             'bilibili.app.playurl.v1.PlayURL/PlayView',
@@ -43,28 +41,28 @@ test('Loon playback isolation: neither rewrites nor scripts match the playback c
         'https://bsbsb.top/api/skipSegments?videoID=test',
         'https://api.live.bilibili.com/xlive/open-interface/v2/tracker/conf?platform=ios',
     ]) assert.ok(!patterns.some(pattern => pattern.test(url)), url);
-    assert.ok(!safeConfig.includes('[Rule]'));
-    assert.equal(safeLines.find(line => line.startsWith('hostname = ')), 'hostname = app.bilibili.com, api.bilibili.com');
+    assert.ok(!loonConfig.includes('[Rule]'));
+    assert.equal(loonLines.find(line => line.startsWith('hostname = ')), 'hostname = app.bilibili.com, api.bilibili.com, grpc.biliapi.net');
 });
 
 test('Loon playback isolation retains homepage controls and splash/feed filtering', () => {
-    const standardLines = readFileSync(new URL('../release/loon/plugin/bilibili.lpx', import.meta.url), 'utf8').split('\n');
     for (const prefix of ['showHotSearch=', 'homeTabOrder=']) {
-        assert.equal(safeLines.find(line => line.startsWith(prefix)), standardLines.find(line => line.startsWith(prefix)));
+        assert.ok(loonLines.some(line => line.startsWith(prefix)));
     }
-    assert.equal(safeLines.find(line => line.endsWith('tag=bilibili.home')), standardLines.find(line => line.endsWith('tag=bilibili.home')));
-    const scripts = safeLines.filter(line => line.startsWith('http-'));
-    assert.equal(scripts.length, 1, 'Only the homepage/search response script remains');
-    const rewrites = safeLines.filter(line => line.startsWith('^https:')).map(line => new RegExp(line.split(' ')[0]));
+    assert.deepEqual(readdirSync(new URL('../release/loon/plugin/', import.meta.url)).filter(name => name.endsWith('.lpx')), ['bilibili.lpx']);
+    const scripts = loonLines.filter(line => line.startsWith('http-'));
+    assert.deepEqual(scripts.map(line => line.match(/tag=([^,]+)$/)[1]).sort(), ['bilibili.home', 'bilibili.video-ads']);
+    assert.ok(loonLines.some(line => line.includes('jq/bilibili.mine.jq')));
+    const rewrites = loonLines.filter(line => line.startsWith('^https:')).map(line => new RegExp(line.split(' ')[0]));
     for (const endpoint of ['splash/list', 'splash/show', 'splash/event/list2', 'feed/index', 'feed/index/story']) {
         assert.ok(rewrites.some(pattern => pattern.test(`https://app.bilibili.com/x/v2/${endpoint}?build=1`)));
     }
     for (const name of ['sponsorBlock=', 'optimizeRequest=', 'purifyComment=', 'displayUpList=']) {
-        assert.ok(!safeConfig.includes(name), 'Do not expose controls that have no effect');
+        assert.ok(!loonConfig.includes(name), 'Do not expose controls that have no effect');
     }
 });
 
-for (const filename of ['release/loon/plugin/bilibili.lpx', 'release/surge/module/bilibili.sgmodule']) {
+for (const filename of ['release/surge/module/bilibili.sgmodule']) {
     const lines = readFileSync(new URL('../' + filename, import.meta.url), 'utf8').split('\n');
     function patterns(type) {
         return lines.flatMap(line => {

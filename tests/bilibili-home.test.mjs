@@ -98,7 +98,7 @@ for (const platform of ['surge', 'loon']) {
 }
 
 test('release rules isolate homepage/search from playback and remove conflicting rewrites', () => {
-    for (const filename of ['release/loon/plugin/bilibili.lpx', 'release/loon/plugin/bilibili-playback-safe.lpx', 'release/loon/plugin/bilibili-playback-compatible.lpx', 'release/surge/module/bilibili.sgmodule']) {
+    for (const filename of ['release/loon/plugin/bilibili.lpx', 'release/surge/module/bilibili.sgmodule']) {
         const text = readFileSync(new URL('../' + filename, import.meta.url), 'utf8');
         const lines = text.split('\n');
         const line = lines.find(line => line.startsWith('bilibili.home =') || line.endsWith('tag=bilibili.home'));

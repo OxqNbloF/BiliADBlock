@@ -134,8 +134,8 @@ test('ad-free bodies and unsupported/malformed responses pass through unchanged'
     ]) assert.equal(Object.keys(run(unified + 'View', ad, { $response: { body: ad, ...response } })).length, 0);
 });
 
-test('compatible configuration restores only five video-ad response routes', () => {
-    const text = readFileSync(new URL('../release/loon/plugin/bilibili-playback-compatible.lpx', import.meta.url), 'utf8');
+test('standard Loon configuration enables only five video-ad response routes', () => {
+    const text = readFileSync(new URL('../release/loon/plugin/bilibili.lpx', import.meta.url), 'utf8');
     const lines = text.split('\n');
     const scripts = lines.filter(line => line.startsWith('http-response '));
     assert.equal(scripts.length, 2);
