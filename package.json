@@ -5,6 +5,7 @@
     "sideEffects": false,
     "scripts": {
         "build": "tsx build.ts",
+        "test:home": "node --test tests/bilibili-home.test.mjs",
         "generate": "buf generate && tsx add-pure-annotations.ts",
         "jq": "jq -f ./jq/dev/index.jq --indent 4 < ./jq/dev/input.json > ./jq/dev/output.json"
     },

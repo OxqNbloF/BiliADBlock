@@ -1,3 +1,4 @@
+import { exit } from '@core/process';
 import { getLayoutData, getSectionData, getCreatorHubData, getVIPData } from './data';
 import {
     Layout,
@@ -28,11 +29,66 @@ function patchValue<T extends object, P extends object>(target: T | T[], patch: 
 
 export const handleLayout: Middleware<Layout> = (ctx, next) => {
     const { data } = ctx.state.message;
+    const layout = getLayoutData(ctx.state.i18n);
 
-    patchValue(data, getLayoutData(ctx.state.i18n));
+    layout.tab = sortHomeTabs(layout.tab, ctx.argument.homeTabOrder);
+    patchValue(data, layout);
 
     return next();
 };
+
+// Showing hot searches preserves the original response, including unknown fields.
+export const handleSearchSquare: Middleware = (ctx, next) => {
+    const showHotSearch = String(ctx.argument.showHotSearch).trim().toLowerCase();
+    if (showHotSearch === 'true' || showHotSearch === '1') exit();
+
+    Object.assign(ctx.state.message, {
+        code: -404,
+        message: '-404',
+        ttl: 1,
+        data: null,
+    });
+
+    return next();
+};
+
+const homeTabAliases = new Map<string, number>([
+    ['live', 731],
+    ['直播', 731],
+    ['recommend', 477],
+    ['recommendation', 477],
+    ['for you', 477],
+    ['推荐', 477],
+    ['推薦', 477],
+    ['popular', 478],
+    ['trending', 478],
+    ['hot', 478],
+    ['热门', 478],
+    ['熱門', 478],
+    ['anime', 3502],
+    ['bangumi', 3502],
+    ['动画', 3502],
+    ['動畫', 3502],
+    ['番剧', 3502],
+    ['番劇', 3502],
+    ['film', 3503],
+    ['tv', 3503],
+    ['film & tv', 3503],
+    ['影视', 3503],
+    ['影視', 3503],
+]);
+
+function sortHomeTabs<T extends { id: number; pos: number }>(tabs: T[], order: string): T[] {
+    const tabById = new Map(tabs.map(tab => [tab.id, tab]));
+    const selectedIds = String(order)
+        .split(/[,，>|]/)
+        .map(value => homeTabAliases.get(value.trim().toLowerCase()))
+        .filter((id): id is number => id !== undefined && tabById.has(id));
+    const uniqueIds = [...new Set(selectedIds)];
+    const orderedTabs = [...uniqueIds.map(id => tabById.get(id)!), ...tabs.filter(tab => !uniqueIds.includes(tab.id))];
+
+    return orderedTabs.map((tab, index) => ({ ...tab, pos: index + 1 }));
+}
 
 export const handleSplash: Middleware<Splash> = (ctx, next) => {
     const { data } = ctx.state.message;

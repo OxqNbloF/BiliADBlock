@@ -4,6 +4,8 @@ import { getI18n, I18n } from '../locale';
 
 export interface Argument {
     showCreatorHub: boolean | number;
+    showHotSearch: boolean | number | string;
+    homeTabOrder: string;
 }
 
 export interface State<T> {
@@ -13,7 +15,11 @@ export interface State<T> {
 
 export type Middleware<T = { code: number }> = DefaultMiddleware<State<T>, Argument>;
 
-export const initArgument = createInitArgumentMiddleware<Argument>({ showCreatorHub: false });
+export const initArgument = createInitArgumentMiddleware<Argument>({
+    showCreatorHub: false,
+    showHotSearch: false,
+    homeTabOrder: 'live,recommend,popular,anime,film',
+});
 
 export const initI18n: Middleware = async (ctx, next) => {
     const locale = ctx.url.searchParams.get('s_locale') || '';
