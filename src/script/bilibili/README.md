@@ -1,5 +1,7 @@
 # Bilibili 增强
 
+本仓库的自定义功能在 `dev` 分支维护，`master` 用于对齐上游 `kokoryh/Sparkle`。Loon 用户请使用 [播放兼容版配置](https://raw.githubusercontent.com/OxqNbloF/BiliADBlock/refs/heads/dev/release/loon/plugin/bilibili-playback-compatible.lpx)；配置中的自定义脚本同样从 `dev` 加载。旧的 `master` 订阅地址需要手动更换。
+
 ## 参数说明
 
 | 参数             | 可选值 / 格式               | 默认值 | 说明                                                                     |
@@ -19,6 +21,8 @@
 - **排查版播放恢复，但视频下方又出现广告**
 
   使用 `release/loon/plugin/bilibili-playback-compatible.lpx`（“哔哩哔哩增强·播放兼容版”）。它以排查版为基础，增加独立的 `dist/bilibili.video-ads.js`，只处理视频详情和相关推荐的明确广告字段、广告卡片及商品模块。普通推荐、未知字段和播放相关配置保留；没有广告或解析失败时原样放行，改写时保留原有 gRPC 压缩方式，不覆盖响应头和 HTTP/2 trailers。
+
+  兼容版保留标准版的“我的”页精简（含 iPad），使用同一份 `bilibili.mine.jq`，仅匹配 `/x/v2/account/mine` 和 `/x/v2/account/mine/ipad` 响应。
 
   兼容版不启用空降助手、请求代发、播放地址/播放进度/弹幕改写、gRPC 模拟响应或 P2P 拦截。它需要为视频详情响应重新加入 `grpc.biliapi.net` 的 MitM，因此仍需真机验证。评论区广告暂不在此版本处理范围内。
 

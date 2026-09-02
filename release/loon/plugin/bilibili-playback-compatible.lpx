@@ -1,7 +1,7 @@
 #!name=哔哩哔哩增强·播放兼容版
-#!desc=恢复视频下方广告和相关推荐广告过滤；保留首页排序、热搜开关、开屏和首页信息流去广告；不包含空降助手、播放进度/播放地址改写或 P2P 干预。启用前关闭标准版和排查版，勿同时启用。
+#!desc=恢复视频下方广告和相关推荐广告过滤；保留首页排序、热搜开关、我的页精简、开屏和首页信息流去广告；不包含空降助手、播放进度/播放地址改写或 P2P 干预。启用前关闭标准版和排查版，勿同时启用。
 #!openUrl=https://apps.apple.com/app/id736536022
-#!homepage=https://github.com/OxqNbloF/BiliADBlock/blob/master/src/script/bilibili/README.md
+#!homepage=https://github.com/OxqNbloF/BiliADBlock/blob/dev/src/script/bilibili/README.md
 #!tag=Enhancement
 #!system=iOS,iPadOS
 #!system_version=15
@@ -13,14 +13,15 @@ showHotSearch=switch,false,tag=显示热搜
 homeTabOrder=input,"live,recommend,popular,anime,film",tag=首页标签顺序,desc=填写 live、recommend、popular、anime、film 或中文标签名，以逗号分隔；缺少的标签按默认顺序追加
 
 [Rewrite]
+^https:\/\/app\.bilibili\.com\/x\/v2\/account\/mine(\/ipad)?\? response-body-json-jq jq-path="https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/jq/bilibili.mine.jq"
 ^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/list\? mock-response-body data-type=text status-code=200 data="{"code":0,"message":"OK","ttl":1,"data":{"max_time":0,"min_interval":31536000,"pull_interval":31536000,"keep_ids":[],"show":[],"list":[{}],"splash_request_id":""}}"
 ^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/(show|event\/list2)\? response-body-json-jq '.data |= with_entries(if .key | IN("show", "event_list") then .value = [] else . end)'
 ^https:\/\/app\.bilibili\.com\/x\/v2\/feed\/index\? response-body-json-jq 'if .data.items then .data.items |= map(select((.banner_item == null) and (.ad_info == null) and (.card_goto == "av") and (.card_type | IN("small_cover_v2", "large_cover_single_v9", "large_cover_v1")))) end'
 ^https:\/\/app\.bilibili\.com\/x\/v2\/feed\/index\/story\? response-body-json-jq 'if .data.items then .data.items |= map(select((.ad_info == null) and (.card_goto | IN("vertical_ad_av", "vertical_ad_live", "vertical_ad_picture") | not)) | del(.story_cart_icon, .free_flow_toast, .image_infos, .course_info, .game_info)) end'
 
 [Script]
-http-response ^https:\/\/(grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.app\.(viewunite\.v1\.View\/(View|RelatesFeed|AIRelateAsync)|view\.v1\.View\/(View|RelatesFeed))$ script-path=https://raw.githubusercontent.com/OxqNbloF/BiliADBlock/refs/heads/master/dist/bilibili.video-ads.js, requires-body=true, binary-body-mode=true, timeout=3, tag=bilibili.video-ads
-http-response ^https:\/\/(app\.bilibili\.com\/x\/resource\/show\/tab\/v2|ap[ip]\.bilibili\.com\/x\/v2\/search\/square)(\?|$) script-path=https://raw.githubusercontent.com/OxqNbloF/BiliADBlock/refs/heads/master/dist/bilibili.json.js, argument=[{showHotSearch}, {homeTabOrder}], requires-body=true, timeout=3, tag=bilibili.home
+http-response ^https:\/\/(grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.app\.(viewunite\.v1\.View\/(View|RelatesFeed|AIRelateAsync)|view\.v1\.View\/(View|RelatesFeed))$ script-path=https://raw.githubusercontent.com/OxqNbloF/BiliADBlock/refs/heads/dev/dist/bilibili.video-ads.js, requires-body=true, binary-body-mode=true, timeout=3, tag=bilibili.video-ads
+http-response ^https:\/\/(app\.bilibili\.com\/x\/resource\/show\/tab\/v2|ap[ip]\.bilibili\.com\/x\/v2\/search\/square)(\?|$) script-path=https://raw.githubusercontent.com/OxqNbloF/BiliADBlock/refs/heads/dev/dist/bilibili.json.js, argument=[{showHotSearch}, {homeTabOrder}], requires-body=true, timeout=3, tag=bilibili.home
 
 [MitM]
 hostname = app.bilibili.com, api.bilibili.com, grpc.biliapi.net

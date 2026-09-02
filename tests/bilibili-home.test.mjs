@@ -120,7 +120,7 @@ test('release rules isolate homepage/search from playback and remove conflicting
             'https://video.bilivideo.com/video.m4s',
         ]) assert.ok(!regex.test(url));
         assert.ok(line.includes('timeout=3'));
-        assert.ok(line.includes('OxqNbloF/BiliADBlock/refs/heads/master/dist/bilibili.json.js'));
+        assert.ok(line.includes('OxqNbloF/BiliADBlock/refs/heads/dev/dist/bilibili.json.js'));
         assert.ok(!text.includes('jq/bilibili.tab.jq'));
         for (const mock of lines.filter(line => line.startsWith('^https:'))) {
             assert.ok(!new RegExp(mock.split(' ')[0]).test(searchUrl + '?build=1'));
